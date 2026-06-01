@@ -1,5 +1,6 @@
 from utils.llm import ask_llm
 
+
 def analyze_log(log_text):
 
     prompt = f"""

@@ -1,5 +1,6 @@
 from utils.llm import ask_llm
 
+
 def generate_fix(log_text):
 
     prompt = f"""
