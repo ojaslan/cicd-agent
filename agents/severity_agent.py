@@ -1,17 +1,18 @@
 from utils.llm import ask_llm
 
-def classify_severity(log_text):
+def severity_agent(log_text):
 
     prompt = f"""
-    You are a DevOps incident classifier.
+    You are a Site Reliability Engineer.
 
-    Classify the severity of this error.
+    Classify the incident severity.
 
-    Return ONLY one:
-    Critical
-    High
-    Medium
-    Low
+    Levels:
+    SEV-1 Critical
+    SEV-2 High
+    SEV-3 Medium
+    SEV-4 Low
+    SEV-5 Informational
 
     Log:
     {log_text}

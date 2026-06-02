@@ -1,150 +1,102 @@
+import uuid
 import streamlit as st
 
-from agents.analyzer import analyze_log
-from agents.root_cause import root_cause
-from agents.fix_generator import generate_fix
-from agents.severity_agent import classify_severity
+from agents.severity_agent import severity_agent
+from agents.root_cause_agent import root_cause_agent
+from agents.fix_agent import fix_agent
+from agents.prevention_agent import prevention_agent
+from agents.report_agent import report_agent
 
-from utils.storage import (
-    save_incident,
-    load_incidents
-)
 
 st.set_page_config(
     page_title="AI DevOps Copilot",
+    page_icon="🤖",
     layout="wide"
 )
 
 st.title("🤖 AI DevOps Copilot")
+st.subheader("AI-Powered CI/CD Failure Investigator")
 
-# -----------------------
-# Dashboard Section
-# -----------------------
-
-incidents = load_incidents()
-
-total = len(incidents)
-
-critical = sum(
-    1 for i in incidents
-    if "critical" in i["severity"].lower()
-)
-
-high = sum(
-    1 for i in incidents
-    if "high" in i["severity"].lower()
-)
-
-medium = sum(
-    1 for i in incidents
-    if "medium" in i["severity"].lower()
-)
-
-low = sum(
-    1 for i in incidents
-    if "low" in i["severity"].lower()
-)
-
-st.subheader("📊 Incident Dashboard")
-
-c1, c2, c3, c4, c5 = st.columns(5)
-
-c1.metric("Total", total)
-c2.metric("Critical", critical)
-c3.metric("High", high)
-c4.metric("Medium", medium)
-c5.metric("Low", low)
-
-st.divider()
-
-# -----------------------
-# Upload Section
-# -----------------------
 
 uploaded_file = st.file_uploader(
     "Upload CI/CD Log",
     type=["txt", "log"]
 )
 
+
 if uploaded_file:
 
-    log_text = uploaded_file.read().decode()
+    log_text = uploaded_file.read().decode("utf-8")
 
-    st.subheader("Uploaded Log")
+    st.subheader("📄 Uploaded Log")
 
-    st.text_area(
-        "Log Content",
+    st.code(
         log_text,
-        height=250
+        language="text"
     )
 
-    if st.button("Analyze"):
+    if st.button("🚀 Investigate Incident"):
 
         with st.spinner("Running AI Agents..."):
 
-            summary = analyze_log(log_text)
+            severity = severity_agent(log_text)
 
-            severity = classify_severity(log_text)
+            root_cause = root_cause_agent(log_text)
 
-            cause = root_cause(log_text)
+            fix = fix_agent(log_text)
 
-            fix = generate_fix(log_text)
-
-            incident = {
-                "severity": severity,
-                "summary": summary,
-                "cause": cause
-            }
-
-            save_incident(incident)
-
-        st.success("Analysis Complete")
-
-        st.subheader("🚨 Severity")
-        st.write(severity)
-
-        st.subheader("📋 Analysis")
-        st.write(summary)
-
-        st.subheader("🔍 Root Cause")
-        st.write(cause)
-
-        st.subheader("🛠 Suggested Fix")
-        st.write(fix)
-
-# -----------------------
-# Incident History
-# -----------------------
-
-st.divider()
-
-st.subheader("📚 Incident History")
-
-if incidents:
-
-    for idx, incident in enumerate(
-        reversed(incidents),
-        start=1
-    ):
-
-        with st.expander(
-            f"Incident {idx}"
-        ):
-
-            st.write(
-                f"Severity: {incident['severity']}"
+            prevention = prevention_agent(
+                log_text,
+                root_cause
             )
 
-            st.write(
-                f"Summary: {incident['summary']}"
+            report = report_agent(
+                severity,
+                root_cause,
+                fix,
+                prevention
             )
 
-            st.write(
-                f"Cause: {incident['cause']}"
+        incident_id = str(uuid.uuid4())[:8]
+
+        st.success(
+            f"Incident ID: {incident_id}"
+        )
+
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(
+            [
+                "🚨 Severity",
+                "🔍 Root Cause",
+                "🛠 Fix",
+                "🛡 Prevention",
+                "📄 Report"
+            ]
+        )
+
+        with tab1:
+            st.markdown(severity)
+
+        with tab2:
+            st.markdown(root_cause)
+
+        with tab3:
+            st.markdown(fix)
+
+        with tab4:
+            st.markdown(prevention)
+
+        with tab5:
+            st.markdown(report)
+
+            st.download_button(
+                "📥 Download Incident Report",
+                report,
+                f"incident_{incident_id}.txt",
+                "text/plain"
             )
 
 else:
 
     st.info(
-        "No incidents recorded yet."
+        "Upload a CI/CD log file to begin investigation."
     )
