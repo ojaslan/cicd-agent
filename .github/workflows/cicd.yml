@@ -31,9 +31,9 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name: Run Test
+      - name: Run Tests
         run: |
-          pytest test/
+          pytest tests/
 
   docker-build:
 
@@ -67,7 +67,7 @@ jobs:
 
       - name: Run Security Scan
         run: |
-          bandit -r . -x test/
+          bandit -r . -x tests/
 
   kubernetes-validation:
 
