@@ -67,7 +67,7 @@ jobs:
 
       - name: Run Security Scan
         run: |
-          bandit -r . -x tests/
+          bandit -r . --exclude ./tests -ll
 
   kubernetes-validation:
 
